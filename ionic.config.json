@@ -1,0 +1,7 @@
+{
+  "name": "ez-card-scanner",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
