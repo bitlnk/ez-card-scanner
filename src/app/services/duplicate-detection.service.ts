@@ -1,100 +1,129 @@
 import { Injectable } from '@angular/core';
-import {ContactInput, Contacts, PhoneType} from '@capacitor-community/contacts';
 import { BusinessCard } from '../models/business-card.model';
-import {
-  EmailInput,
-  PhoneInput,
-  PostalAddressInput
-} from "@capacitor-community/contacts/dist/esm/definitions";
+
+export interface DuplicateMatch {
+  card: BusinessCard;
+  matchScore: number;
+  matchedFields: string[];
+  matchType: 'exact' | 'high' | 'medium' | 'low';
+}
 
 @Injectable({ providedIn: 'root' })
-export class ContactsService {
+export class DuplicateDetectionService {
 
-  async saveToNativeContacts(card: BusinessCard): Promise<boolean> {
-    try {
-      // Request permissions first
-      const permission = await Contacts.requestPermissions();
+  findDuplicates(newCard: BusinessCard, existingCards: BusinessCard[]): DuplicateMatch[] {
+    const matches: DuplicateMatch[] = [];
 
-      console.log(permission);
-
-      if (permission.contacts !== 'granted') {
-        throw new Error('Contacts permission denied');
+    for (const existingCard of existingCards) {
+      const match = this.compareCards(newCard, existingCard);
+      if (match.matchScore > 0.3) { // Only return significant matches
+        matches.push(match);
       }
+    }
 
-      // Prepare contact data
-      const newContact: ContactInput = {
-        name: {
-          given: this.getFirstName(card.name),
-          family: this.getLastName(card.name),
-        },
-        organization: {
-          company: card.company || undefined,
-          jobTitle: card.title || undefined
+    // Sort by match score (highest first)
+    return matches.sort((a, b) => b.matchScore - a.matchScore);
+  }
+
+  private compareCards(card1: BusinessCard, card2: BusinessCard): DuplicateMatch {
+    const matchedFields: string[] = [];
+    let totalScore = 0;
+    let fieldCount = 0;
+
+    // Email match (highest weight - 40%)
+    if (card1.email && card2.email) {
+      fieldCount++;
+      if (this.normalizeEmail(card1.email) === this.normalizeEmail(card2.email)) {
+        matchedFields.push('email');
+        totalScore += 0.4;
+      }
+    }
+
+    // Phone match (high weight - 30%)
+    if (card1.phone && card2.phone) {
+      fieldCount++;
+      if (this.normalizePhone(card1.phone) === this.normalizePhone(card2.phone)) {
+        matchedFields.push('phone');
+        totalScore += 0.3;
+      }
+    }
+
+    // Name match (medium weight - 20%)
+    if (card1.name && card2.name) {
+      fieldCount++;
+      const nameScore = this.compareNames(card1.name, card2.name);
+      if (nameScore > 0.8) {
+        matchedFields.push('name');
+        totalScore += 0.2 * nameScore;
+      }
+    }
+
+    // Company match (lower weight - 10%)
+    if (card1.company && card2.company) {
+      fieldCount++;
+      const companyScore = this.compareStrings(card1.company, card2.company);
+      if (companyScore > 0.8) {
+        matchedFields.push('company');
+        totalScore += 0.1 * companyScore;
+      }
+    }
+
+    // Determine match type
+    let matchType: 'exact' | 'high' | 'medium' | 'low' = 'low';
+    if (totalScore >= 0.9) matchType = 'exact';
+    else if (totalScore >= 0.7) matchType = 'high';
+    else if (totalScore >= 0.5) matchType = 'medium';
+
+    return {
+      card: card2,
+      matchScore: totalScore,
+      matchedFields,
+      matchType
+    };
+  }
+
+  private normalizeEmail(email: string): string {
+    return email.toLowerCase().trim();
+  }
+
+  private normalizePhone(phone: string): string {
+    // Remove all non-digits
+    return phone.replace(/\D/g, '');
+  }
+
+  private compareNames(name1: string, name2: string): number {
+    const normalize = (name: string) => name.toLowerCase().trim().replace(/\s+/g, ' ');
+    const n1 = normalize(name1);
+    const n2 = normalize(name2);
+
+    if (n1 === n2) return 1.0;
+
+    // Split names and compare parts
+    const parts1 = n1.split(' ');
+    const parts2 = n2.split(' ');
+
+    let matches = 0;
+    const maxParts = Math.max(parts1.length, parts2.length);
+
+    for (const part1 of parts1) {
+      for (const part2 of parts2) {
+        if (part1 === part2 && part1.length > 1) {
+          matches++;
+          break;
         }
-      };
-
-      // Add phone numbers
-      if (card.phone) {
-        newContact.phones = [{
-          type: 'work',
-          number: card.phone
-        } as PhoneInput];
       }
-
-      // Add email addresses
-      if (card.email) {
-        newContact.emails = [{
-          type: 'work',
-          address: card.email
-        } as EmailInput];
-      }
-
-      // Add postal address
-      if (card.address) {
-        newContact.postalAddresses = [{
-          type: 'work',
-          street: card.address,
-          label: 'Work Address'
-        } as PostalAddressInput];
-      }
-
-      // Add website as note if available
-      if (card.website || card.notes) {
-        const noteText = [];
-        if (card.website) noteText.push(`Website: ${card.website}`);
-        if (card.notes) noteText.push(`Notes: ${card.notes}`);
-        newContact.note = noteText.join('\n');
-      }
-
-      // Save to device contacts
-      const result = await Contacts.createContact({ contact: newContact });
-
-      console.log('Contact saved successfully:', result);
-      return true;
-
-    } catch (error) {
-      console.error('Error saving to contacts:', error);
-      throw error;
     }
+
+    return matches / maxParts;
   }
 
-  private getFirstName(fullName: string): string {
-    const parts = fullName.trim().split(' ');
-    return parts[0] || '';
-  }
+  private compareStrings(str1: string, str2: string): number {
+    const s1 = str1.toLowerCase().trim();
+    const s2 = str2.toLowerCase().trim();
 
-  private getLastName(fullName: string): string {
-    const parts = fullName.trim().split(' ');
-    return parts.length > 1 ? parts.slice(1).join(' ') : '';
-  }
+    if (s1 === s2) return 1.0;
+    if (s1.includes(s2) || s2.includes(s1)) return 0.8;
 
-  async checkContactsPermission(): Promise<boolean> {
-    try {
-      const result = await Contacts.checkPermissions();
-      return result.contacts === 'granted';
-    } catch (error) {
-      console.error('Error checking permission:', error);
-      return false;
-    }
+    return 0;
   }
 }

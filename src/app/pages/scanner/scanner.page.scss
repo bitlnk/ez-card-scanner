@@ -1,0 +1,57 @@
+.scan-options {
+  margin-top: 20px;
+
+  .scan-button {
+    height: 60px;
+    margin-bottom: 10px;
+  }
+}
+
+.qr-scan-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+
+  .scan-area {
+    text-align: center;
+    color: white;
+
+    p {
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+  }
+}
+
+.processing {
+  text-align: center;
+  padding: 40px;
+
+  p {
+    margin-top: 20px;
+  }
+}
+
+.card-preview {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  margin: 0 auto 20px;
+  display: block;
+  border-radius: 8px;
+}
+
+.action-buttons {
+  margin-top: 20px;
+
+  ion-button {
+    margin-bottom: 10px;
+  }
+}

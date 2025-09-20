@@ -1,0 +1,66 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/scanner"></ion-back-button>
+    </ion-buttons>
+    <ion-title>My Contacts</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="addNew()">
+        <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-searchbar placeholder="Search..." (ionInput)="filterCards($event)" debounce="300"></ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="cards-container">
+    <ion-card *ngFor="let card of filteredCards" class="contact-card">
+      <ion-card-header>
+        <div class="card-header-content">
+          <div>
+            <ion-card-title>{{ card.name }}</ion-card-title>
+            <p class="title">{{ card.title }}</p>
+            <p class="company" *ngIf="card.company">
+              <ion-icon name="business-outline"></ion-icon>
+              {{ card.company }}
+            </p>
+          </div>
+          <ion-chip [color]="card.source === 'camera' ? 'primary' : card.source === 'qr' ? 'secondary' : 'medium'">
+            <ion-icon [name]="getSourceIcon(card.source)"></ion-icon>
+          </ion-chip>
+        </div>
+      </ion-card-header>
+
+      <ion-card-content>
+        <div class="contact-info">
+          <p *ngIf="card.email">
+            <ion-icon name="mail-outline"></ion-icon>
+            <a [href]="'mailto:' + card.email">{{ card.email }}</a>
+          </p>
+          <p *ngIf="card.phone">
+            <ion-icon name="call-outline"></ion-icon>
+            <a [href]="'tel:' + card.phone">{{ card.phone }}</a>
+          </p>
+        </div>
+
+        <img *ngIf="card.imageBase64" [src]="card.imageBase64" alt="Card" class="card-image">
+
+        <ion-button size="small" fill="clear" color="danger" (click)="deleteCard(card, $event)">
+          <ion-icon slot="start" name="trash-outline"></ion-icon>
+          Delete
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <div *ngIf="filteredCards.length === 0" class="empty-state">
+      <h2>No contacts found</h2>
+      <ion-button (click)="addNew()">
+        <ion-icon slot="start" name="add-outline"></ion-icon>
+        Add Contact
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

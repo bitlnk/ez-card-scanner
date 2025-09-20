@@ -1,0 +1,117 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Business Card Scanner</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="viewCards()">
+        <ion-icon slot="icon-only" name="people-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- Main Scanning Options -->
+  <div *ngIf="!currentCard && !showManualForm && scanMode === 'none'" class="scan-options">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Scan Business Card</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-grid>
+          <ion-row>
+            <ion-col size="12" size-md="4">
+              <ion-button expand="block" (click)="captureCard()" class="scan-button">
+                <ion-icon slot="start" name="camera-outline"></ion-icon>
+                Take Photo
+              </ion-button>
+            </ion-col>
+            <ion-col size="12" size-md="4">
+              <ion-button expand="block" (click)="scanQRCode()" class="scan-button">
+                <ion-icon slot="start" name="qr-code-outline"></ion-icon>
+                Scan QR Code
+              </ion-button>
+            </ion-col>
+            <ion-col size="12" size-md="4">
+              <ion-button expand="block" (click)="showManualFormFallback()" class="scan-button">
+                <ion-icon slot="start" name="create-outline"></ion-icon>
+                Manual Entry
+              </ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- QR Scanning Overlay -->
+  <div *ngIf="scanMode === 'qr'" class="qr-scan-overlay">
+    <div class="scan-area">
+      <p>Point camera at QR code</p>
+      <ion-button (click)="cardService.scanQRCode(); scanMode = 'none'">Cancel</ion-button>
+    </div>
+  </div>
+
+  <!-- Processing Indicator -->
+  <div *ngIf="isProcessing" class="processing">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Processing card...</p>
+  </div>
+
+  <!-- Card Form -->
+  <div *ngIf="currentCard">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Review & Edit Details</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <img *ngIf="capturedImage" [src]="capturedImage" alt="Card" class="card-preview">
+
+        <ion-list>
+          <ion-item>
+            <ion-label position="stacked">Name *</ion-label>
+            <ion-input [(ngModel)]="currentCard.name" placeholder="Full Name"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Title</ion-label>
+            <ion-input [(ngModel)]="currentCard.title" placeholder="Job Title"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Company</ion-label>
+            <ion-input [(ngModel)]="currentCard.company" placeholder="Company Name"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Email</ion-label>
+            <ion-input [(ngModel)]="currentCard.email" type="email" placeholder="email@example.com"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Phone</ion-label>
+            <ion-input [(ngModel)]="currentCard.phone" type="tel" placeholder="+1 (555) 123-4567"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Website</ion-label>
+            <ion-input [(ngModel)]="currentCard.website" placeholder="www.example.com"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Address</ion-label>
+            <ion-textarea [(ngModel)]="currentCard.address" rows="2" placeholder="Street Address"></ion-textarea>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Notes</ion-label>
+            <ion-textarea [(ngModel)]="currentCard.notes" rows="3" placeholder="Additional notes..."></ion-textarea>
+          </ion-item>
+        </ion-list>
+
+        <div class="action-buttons">
+          <ion-button expand="block" (click)="saveCard()" color="success" [disabled]="!currentCard.name">
+            <ion-icon slot="start" name="checkmark-circle"></ion-icon>
+            Save Contact
+          </ion-button>
+          <ion-button expand="block" (click)="resetForm()" color="medium">
+            <ion-icon slot="start" name="close-circle"></ion-icon>
+            Cancel
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

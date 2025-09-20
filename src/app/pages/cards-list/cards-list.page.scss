@@ -1,0 +1,90 @@
+.cards-container {
+  padding: 10px;
+}
+
+.contact-card {
+  margin-bottom: 16px;
+
+  .card-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    ion-card-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .title {
+      color: var(--ion-color-medium);
+      font-size: 14px;
+      margin: 4px 0;
+    }
+
+    .company {
+      color: var(--ion-color-primary);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin: 4px 0;
+
+      ion-icon {
+        font-size: 16px;
+      }
+    }
+  }
+
+  .contact-info {
+    margin-top: 12px;
+
+    p {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 8px 0;
+      font-size: 14px;
+
+      ion-icon {
+        font-size: 18px;
+        color: var(--ion-color-medium);
+      }
+
+      a {
+        color: var(--ion-color-primary);
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+
+  .card-image {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    margin: 12px auto;
+    display: block;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+
+  ion-icon {
+    font-size: 80px;
+    color: var(--ion-color-medium);
+    margin-bottom: 20px;
+  }
+
+  h2 {
+    color: var(--ion-color-medium);
+    margin-bottom: 20px;
+  }
+}
